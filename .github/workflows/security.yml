@@ -1,3 +1,14 @@
+# NOTA (2026-11-05): este workflow esta en rojo a proposito.
+#
+# Lo unico que queda sin corregir es nodemailer: el arreglo recien esta en la
+# 10.x y nosotros estamos en la 9, asi que es un salto de version mayor. Se
+# dejo pendiente porque el vector no es alcanzable desde afuera: nodemailer
+# solo manda los mails de contraseña del staff y nunca ve el buyer_email que
+# carga cualquiera en el formulario publico.
+#
+# No silenciar el job. Hacer el salto en una semana tranquila y comprobar que
+# los mails de recupero de contraseña siguen saliendo.
+
 # npm audit en cada PR y push a master, mas un cron semanal por las dudas
 # (deps no cambian pero pueden salir CVEs nuevas en deps existentes).
 #
