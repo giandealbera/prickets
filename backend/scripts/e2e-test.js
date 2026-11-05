@@ -599,6 +599,88 @@ const dni = (n) => String(30000000 + n);
 
     const del = await req('DELETE', `/rendiciones/${pagoId}`, { token: ownerTok });
     check('rendiciones: eliminar pago', del.status === 200, JSON.stringify(del.status));
+
+    // --- La caja aparece en el listado -------------------------------
+    // Lo que emite el admin o el dueño quedaba afuera (promotor CASA o
+    // promotor_id nulo) y esa plata no se veia en ningun lado: el total de
+    // la noche no cerraba. Ahora va como una fila mas, arriba de todo.
+    {
+      // Evento propio para este bloque: con cupo de sobra los numeros de la
+      // caja son exactos y no dependen de lo que vendieron los checks de
+      // arriba.
+      const dentroDe30 = new Date(Date.now() + 30 * 86400000);
+      const evCaja = await req('POST', '/events', { token: ownerTok, body: {
+        name: 'Evento Caja', date: dentroDe30.toISOString().slice(0, 10), start_time: '23:30',
+        sale_start_at: fechaLocal(-3600000), sale_end_at: dentroDe30.toISOString(),
+        ticket_types: [{ name: 'General', price: 5000, total_quota: 200 }] } });
+      const evCajaId = evCaja.data?.id;
+      const ttCaja = (await req('GET', `/events/${evCajaId}/ticket-types`, { token: ownerTok })).data?.[0]?.id;
+      check('caja: evento de prueba creado', !!evCajaId && !!ttCaja, JSON.stringify(evCaja.data));
+
+      const url = `/rendiciones?event_id=${evCajaId}`;
+
+      // Sin movimiento no ensuciamos el listado con una fila en cero.
+      const vacio = await req('GET', url, { token: ownerTok });
+      check('caja: sin ventas no aparece', !(vacio.data || []).some(p => p.es_caja),
+            `filas=${(vacio.data || []).map(p => p.name).join(', ')}`);
+
+      // El admin genera 2 entradas de $5.000 desde la caja.
+      const pre = await req('POST', '/tickets/pre-sell', { token: admin, body: {
+        event_id: evCajaId, ticket_type_id: ttCaja, qty: 2, payment_method: 'efectivo' } });
+      check('caja: el admin genera 2 entradas', pre.status === 201, JSON.stringify(pre.data));
+
+      const lista = await req('GET', url, { token: ownerTok });
+      const caja = (lista.data || []).find(p => p.es_caja);
+      check('caja: aparece en el listado de rendiciones', !!caja,
+            `filas=${(lista.data || []).map(p => p.name).join(', ')}`);
+      check('caja: va primera', lista.data?.[0]?.es_caja === true,
+            `primera=${lista.data?.[0]?.name}`);
+      check('caja: cuenta las 2 entradas del admin', Number(caja?.total_vendidas) === 2,
+            `vendidas=${caja?.total_vendidas}`);
+      check('caja: suma los $10.000', parseFloat(caja?.total_recaudado) === 10000,
+            `recaudado=${caja?.total_recaudado}`);
+      // No es una publica: nadie rinde esta plata, ya esta en la casa.
+      check('caja: no queda como deuda', Number(caja?.saldo_pendiente) === 0,
+            `saldo=${caja?.saldo_pendiente}`);
+
+      // El dueño no tiene ficha de promotor: sus entradas van con
+      // promotor_id nulo y tambien se perdian.
+      const preOwner = await req('POST', '/tickets/pre-sell', { token: ownerTok, body: {
+        event_id: evCajaId, ticket_type_id: ttCaja, qty: 1, payment_method: 'efectivo' } });
+      check('caja: el dueño genera 1 entrada', preOwner.status === 201, JSON.stringify(preOwner.data));
+      const cajaO = ((await req('GET', url, { token: ownerTok })).data || []).find(p => p.es_caja);
+      check('caja: tambien cuenta lo del dueño', Number(cajaO?.total_vendidas) === 3,
+            `vendidas=${cajaO?.total_vendidas}`);
+      check('caja: y su plata', parseFloat(cajaO?.total_recaudado) === 15000,
+            `recaudado=${cajaO?.total_recaudado}`);
+
+      // Las cortesias son $0: se cuentan aparte para no inflar "vendidas".
+      const cort = await req('POST', '/cortesias', { token: admin, body: {
+        event_id: evCajaId, ticket_type_id: ttCaja,
+        attendees: [{ buyer_name: 'Corte', buyer_apellido: 'Sia' }] } });
+      check('caja: cortesia creada', cort.status === 201 || cort.status === 200, JSON.stringify(cort.data));
+      const caja2 = ((await req('GET', url, { token: ownerTok })).data || []).find(p => p.es_caja);
+      check('caja: la cortesia se cuenta aparte', Number(caja2?.cortesias) === 1,
+            `cortesias=${caja2?.cortesias}`);
+      check('caja: la cortesia no infla las vendidas', Number(caja2?.total_vendidas) === 3,
+            `vendidas=${caja2?.total_vendidas}`);
+      check('caja: la cortesia no suma plata', parseFloat(caja2?.total_recaudado) === 15000,
+            `recaudado=${caja2?.total_recaudado}`);
+
+      // No se puede abrir ni cobrarle a la caja: no es una persona.
+      const detCaja = await req('GET', '/rendiciones/caja', { token: ownerTok });
+      check('caja: no tiene detalle -> 403/404', [403, 404].includes(detCaja.status),
+            `status=${detCaja.status}`);
+      const pagoCaja = await req('POST', '/rendiciones', { token: ownerTok, body: {
+        promotor_id: 'caja', amount: 100, event_id: evCajaId } });
+      check('caja: no se le puede registrar un pago', pagoCaja.status === 403,
+            `status=${pagoCaja.status}`);
+
+      // Con busqueda de una persona no tiene que ensuciar los resultados.
+      const busq = await req('GET', '/rendiciones?search=zzzz', { token: ownerTok });
+      check('caja: no aparece al buscar a otro', !(busq.data || []).some(p => p.es_caja),
+            `filas=${busq.data?.length}`);
+    }
   }
 
   // ---------- Reportes ----------
@@ -1546,7 +1628,9 @@ const dni = (n) => String(30000000 + n);
 
       // El admin dueño de este arbol SI ve sus publicas
       const propias = await req('GET', '/rendiciones', { token: admin });
-      const algunaPropia = (propias.data || [])[0];
+      // Salteamos la fila "Caja": no es una publica y no tiene promotor_id
+      // real, asi que no sirve para probar el aislamiento entre admins.
+      const algunaPropia = (propias.data || []).find(p => !p.es_caja);
       check('rendiciones: el admin sigue viendo las publicas de su arbol',
             Array.isArray(propias.data) && propias.data.length > 0,
             `devolvio ${propias.data?.length}`);
@@ -1556,6 +1640,13 @@ const dni = (n) => String(30000000 + n);
         check('regresion: el otro admin NO ve esas publicas en su listado',
               !(listaB.data || []).some(p => p.promotor_id === algunaPropia.promotor_id),
               `devolvio ${listaB.data?.length} filas`);
+
+        // La fila Caja agrega plata de eventos: tiene que respetar el mismo
+        // aislamiento. Si se escapara, un admin veria la recaudacion de la
+        // caja de los clientes de otro.
+        const cajaB = (listaB.data || []).find(p => p.es_caja);
+        check('regresion: el otro admin NO ve la caja de este arbol',
+              !cajaB, `caja ajena con $${cajaB?.total_recaudado}`);
 
         const detB = await req('GET', `/rendiciones/${algunaPropia.promotor_id}`, { token: adminB });
         check('regresion: el otro admin no abre su detalle', detB.status === 403, `status=${detB.status}`);

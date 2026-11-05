@@ -5,7 +5,8 @@ const { normalizeCity } = require('../utils/normalize');
 const { eventoOperable } = require('../utils/eventStatus');
 
 // POST /api/cortesias — admin genera N entradas de cortesia
-// body: { event_id, ticket_type_id, attendees: [{name, apellido, edad?, localidad?, email?}] }
+// body: { event_id, ticket_type_id,
+//         attendees: [{buyer_name, buyer_apellido, buyer_edad?, buyer_localidad?, buyer_email?}] }
 const createCortesias = async (req, res) => {
   const { event_id, ticket_type_id, attendees } = req.body;
 

@@ -405,7 +405,30 @@ const Rendicion = () => {
           <p className="text-center py-12 text-sm" style={{ color: '#4B5563' }}>Sin resultados</p>
         ) : (
           <div className="space-y-2">
-            {list.map(p => (
+            {list.map(p => p.es_caja ? (
+              /* La caja no es una publica: esa plata ya esta en la casa, nadie
+                 la rinde. Va sin saldo, sin boton de pago y sin detalle. */
+              <div key="caja" className="card w-full text-left flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold shrink-0"
+                     style={{ background: 'rgba(52,211,153,0.12)', color: '#34D399' }}>
+                  $
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold">Caja</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>
+                    Dueño y administración
+                    {p.cortesias > 0 && ` · ${p.cortesias} cortesía${p.cortesias === 1 ? '' : 's'}`}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-bold">{p.total_vendidas} <span className="text-xs font-normal" style={{ color: '#6B7280' }}>vend.</span></p>
+                  <p className="text-sm font-semibold text-emerald-400">{fmt(p.total_recaudado)}</p>
+                  <p className="text-[10px] uppercase tracking-wider mt-0.5" style={{ color: '#6B7280' }}>
+                    En la casa
+                  </p>
+                </div>
+              </div>
+            ) : (
               <div
                 key={p.promotor_id}
                 role="button"

@@ -2,6 +2,88 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
 const { adminCanAccessUser } = require('../utils/scope');
 
+// Fila "Caja" del listado de rendiciones.
+//
+// Todo lo que emite el admin o el dueño desde la caja queda fuera del listado
+// de publicas: el admin arrastra el promotor interno CASA y el dueño no tiene
+// ficha de promotor, asi que sus entradas van con promotor_id en nulo. Las dos
+// cosas las filtra la consulta de abajo (role != 'admin', promo_code != CASA).
+// Resultado: esa plata no aparecia en ningun lado y el total de la noche no
+// cerraba. Verificado: 3 entradas de $5.000 generadas por el admin daban
+// $15.000 invisibles.
+//
+// No es una publica: nadie rinde esta plata porque ya esta en la casa. Por eso
+// la fila va sin comision y sin saldo pendiente, y no se puede abrir el
+// detalle ni registrar un pago contra ella. Es un renglon de lectura.
+//
+// Las cortesias se cuentan aparte: son $0 por definicion e infladas dentro de
+// "vendidas" hacian ver 200 ventas donde no hubo un peso.
+async function filaCaja(req, event_id) {
+  const params = [];
+
+  // Alcance por evento, el mismo que usa GET /events.
+  let scope;
+  if (req.user.role === 'owner') {
+    scope = 'AND e.id IN (SELECT event_id FROM event_owners WHERE user_id = ?)';
+    params.push(req.user.id);
+  } else {
+    scope = `AND (
+      e.created_by = ?
+      OR e.id IN (
+        SELECT eo.event_id FROM event_owners eo
+        JOIN users u ON u.id = eo.user_id
+        WHERE u.created_by = ?
+      )
+    )`;
+    params.push(req.user.id, req.user.id);
+  }
+
+  let eventFilter = '';
+  if (event_id) {
+    eventFilter = 'AND t.event_id = ?';
+    params.push(event_id);
+  }
+
+  const r = await db.query(
+    `SELECT COUNT(CASE WHEN t.payment_method != 'cortesia' THEN 1 END) AS vendidas,
+            COALESCE(SUM(CASE WHEN t.payment_method != 'cortesia' THEN t.amount_paid ELSE 0 END), 0) AS recaudado,
+            COUNT(CASE WHEN t.payment_method = 'cortesia' THEN 1 END) AS cortesias
+       FROM tickets t
+       JOIN events e ON e.id = t.event_id
+       LEFT JOIN promotors p ON p.id = t.promotor_id
+       LEFT JOIN users pu ON pu.id = p.user_id
+      WHERE t.status IN ('pagado','usado')
+        AND (p.id IS NULL OR p.promo_code = 'CASA' OR pu.role NOT IN ('jefe_publicas','vendedor'))
+        ${scope} ${eventFilter}`,
+    params
+  );
+
+  const row = r.rows[0] || {};
+  const vendidas  = parseInt(row.vendidas  || 0, 10);
+  const cortesias = parseInt(row.cortesias || 0, 10);
+  if (!vendidas && !cortesias) return null;  // sin movimiento, no ensuciamos la lista
+
+  return {
+    promotor_id: 'caja',   // centinela: no existe en la tabla promotors
+    es_caja: true,
+    user_id: null,
+    name: 'Caja',
+    apellido: '',
+    celular: null, localidad: null, email: null,
+    promo_code: 'CASA',
+    commission: 0, leader_commission: 0,
+    zona_id: null, zona_name: null, leader_name: null,
+    role: 'caja',
+    total_vendidas: vendidas,
+    total_recaudado: parseFloat(row.recaudado || 0),
+    cortesias,
+    comision_promotor: 0,
+    debe_enviar: 0,
+    ya_rindio: 0,
+    saldo_pendiente: 0,
+  };
+}
+
 // GET /api/rendiciones — lista de publicas con saldo
 // Devuelve todas las publicas con: vendido, comision, debe enviar, ya rindio, saldo pendiente
 const listPublicas = async (req, res) => {
@@ -74,6 +156,15 @@ const listPublicas = async (req, res) => {
       ...r,
       saldo_pendiente: (r.debe_enviar || 0) - (r.ya_rindio || 0),
     }));
+
+    // La caja va primera: es la plata que ya esta en la casa y es lo que
+    // hacia que el total de la noche no cerrara. Si hay busqueda solo aparece
+    // cuando el texto apunta a ella, para no meter ruido entre los resultados.
+    const buscaCaja = !search || 'caja'.includes(search.trim().toLowerCase());
+    if (buscaCaja) {
+      const caja = await filaCaja(req, event_id);
+      if (caja) rows.unshift(caja);
+    }
 
     res.json(rows);
   } catch (err) {
