@@ -1,0 +1,31 @@
+<!--
+  Icono de Prickets. Lo usan la pestaña del navegador y la app instalada
+  (manifest.json lo declara como "any maskable").
+
+  Antes este archivo no existia aunque index.html y el manifest ya lo
+  apuntaban: la pestaña mostraba el icono generico y la PWA se instalaba sin
+  icono propio.
+
+  La P va dibujada con trazados, no con <text>: una fuente no se puede dar por
+  sentada cuando el sistema operativo rasteriza el icono por su cuenta.
+
+  El fondo ocupa todo el lienzo porque "maskable" recorta los bordes, y la
+  letra entra entera en el circulo seguro (centro 256, radio 205) para que
+  ningun recorte se la coma. Dos tonos, como el logo: Pri claro, ckets verde.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Prickets">
+  <rect width="512" height="512" fill="#111312"/>
+
+  <!-- La letra se dibuja a tamaño comodo y se escala desde el centro: asi el
+       trazado queda legible y el ajuste es un solo numero. A 1.3 el punto mas
+       lejano queda a 200 del centro, adentro del circulo seguro de 205. -->
+  <g transform="translate(256 256) scale(1.3) translate(-256 -256)">
+    <!-- Asta de la P -->
+    <rect x="160" y="136" width="56" height="240" rx="6" fill="#E1E5E2"/>
+
+    <!-- Panza, con el ojo calado (evenodd) -->
+    <path fill="#788C79" fill-rule="evenodd"
+          d="M216 136 H280 A72 72 0 0 1 280 280 H216 Z
+             M216 184 H280 A24 24 0 0 1 280 232 H216 Z"/>
+  </g>
+</svg>
