@@ -205,15 +205,27 @@
 }
 
 @layer utilities {
+  /* Orden: de menos a mas preferido, porque gana la ultima que el navegador
+     entiende. Estaba al reves, con -webkit-fill-available al final, y esa
+     ganaba siempre en Chrome y Safari. El problema es que fill-available
+     colapsa a la altura del contenido cuando el ancestro no tiene altura
+     definida: medido en la app, un contenedor h-dvh daba 169px en una
+     ventana de 768px, asi que los spinners de carga quedaban pegados arriba
+     en vez de centrados.
+
+     100dvh hace lo mismo que fill-available pretendia (viewport real de iOS
+     Safari, que cambia cuando aparece y desaparece la barra de URL) y esta
+     soportado desde iOS 15.4. Los navegadores que no lo entienden caen en
+     fill-available, y los mas viejos en 100vh. */
   .min-h-dvh {
     min-height: 100vh;
-    min-height: 100dvh;
     min-height: -webkit-fill-available;
+    min-height: 100dvh;
   }
   .h-dvh {
     height: 100vh;
-    height: 100dvh;
     height: -webkit-fill-available;
+    height: 100dvh;
   }
 
   .animate-in {

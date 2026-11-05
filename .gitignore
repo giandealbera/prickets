@@ -11,3 +11,6 @@ database/*.sqlite
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
+
+# Scripts sueltos de depuracion. Varios apuntan a PRODUCCION: ver scratch/LEEME.md
+scratch/
