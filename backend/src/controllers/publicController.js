@@ -3,7 +3,7 @@ const db = require('../config/database');
 const { puedeEmitirTipo } = require('../utils/nivelTipoEntrada');
 const { nuevoCodigoQR } = require('../utils/qrCode');
 const { checkSaleWindow } = require('../utils/saleWindow');
-const { eventoOperable } = require('../utils/eventStatus');
+const { eventoOperable, cerrarEventosVencidos, fechaCorte } = require('../utils/eventStatus');
 const { suscribir } = require('./newsletterController');
 const { sendPush } = require('./pushController');
 const { normalizeCity } = require('../utils/normalize');
@@ -27,16 +27,33 @@ async function maybeNotifyQuota({ oldSold, newSold, totalQuota, ttName, eventId 
   } catch { /* silencioso */ }
 }
 
+// Catalogo publico: lo que ve alguien que entra a comprar sin link de nadie.
+//
+// Filtraba solo por is_active, asi que mostraba TODO lo que alguna vez se
+// creo. En produccion eso eran 20 eventos, 19 ya pasados y la mayoria basura
+// de pruebas ("Fiesta Test Auditoria E2E" y companhia). El comprador abria la
+// pagina y tenia que adivinar cual era la fiesta de verdad.
+//
+// Ahora sale lo mismo que considera vendible el resto del sistema: evento
+// ACTIVE y fecha que no haya pasado mas alla de los dias de gracia (una
+// fiesta del 15 sigue hasta las 6 AM del 16; ver eventStatus.js). El filtro
+// por fecha ademas cubre el caso de que el cierre automatico todavia no haya
+// corrido.
 const getPublicEvents = async (req, res) => {
   try {
+    // Pone al dia los que vencieron antes de leer.
+    await cerrarEventosVencidos();
+    const corte = fechaCorte();
+
     // Antes: N+1 — 1 query para eventos + 1 query por evento para ticket_types.
     // Ahora: 2 queries totales, agrupadas en JS. Mucho más rápido con muchos eventos.
     const [evResult, ttResult] = await Promise.all([
       db.query(
         `SELECT e.id, e.name, e.date, e.start_time
          FROM events e
-         WHERE e.is_active = 1
-         ORDER BY e.date ASC`
+         WHERE e.is_active = 1 AND e.status = 'ACTIVE' AND e.date >= ?
+         ORDER BY e.date ASC`,
+        [corte]
       ),
       db.query(
         `SELECT tt.id, tt.event_id, tt.name, tt.price,
@@ -44,8 +61,10 @@ const getPublicEvents = async (req, res) => {
          FROM ticket_types tt
          JOIN events e ON e.id = tt.event_id
          WHERE tt.is_active = 1 AND e.is_active = 1
+           AND e.status = 'ACTIVE' AND e.date >= ?
            AND (tt.total_quota - tt.sold_count) > 0
-         ORDER BY tt.price ASC`
+         ORDER BY tt.price ASC`,
+        [corte]
       ),
     ]);
 

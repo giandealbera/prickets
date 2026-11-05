@@ -439,6 +439,32 @@ const dni = (n) => String(30000000 + n);
     const evs = await req('GET', '/public/events');
     check('public: eventos activos con cupo', evs.status === 200 && evs.data?.some?.(e => e.id === eventId), JSON.stringify(evs.data?.length));
 
+    // --- El catalogo publico no muestra basura -------------------------
+    // Filtraba solo por is_active: en produccion el comprador veia 20
+    // eventos, 19 ya pasados y la mayoria fixtures de prueba. Tenia que
+    // adivinar cual era la fiesta de verdad.
+    {
+      const hace30   = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+      const dentro30 = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+
+      const viejo = await req('POST', '/events', { token: admin, body: {
+        name: 'Fiesta del mes pasado', date: hace30, start_time: '23:00',
+        ticket_types: [{ name: 'General', price: 1000, total_quota: 50 }] } });
+      const cancelado = await req('POST', '/events', { token: admin, body: {
+        name: 'Fiesta cancelada', date: dentro30, start_time: '23:00',
+        ticket_types: [{ name: 'General', price: 1000, total_quota: 50 }] } });
+      await req('PUT', `/events/${cancelado.data?.id}`, { token: admin, body: { status: 'CANCELLED' } });
+
+      const cat = await req('GET', '/public/events');
+      const ids = (cat.data || []).map(e => e.id);
+      check('public: no lista eventos ya pasados',
+            !ids.includes(viejo.data?.id), `aparecio ${viejo.data?.id}`);
+      check('public: no lista eventos cancelados',
+            !ids.includes(cancelado.data?.id), `aparecio ${cancelado.data?.id}`);
+      check('public: el evento vigente sigue estando',
+            ids.includes(eventId), `falta ${eventId}`);
+    }
+
     const buy = await req('POST', `/public/tickets/${vendCode}`, {
       body: {
         event_id: eventId, ticket_type_id: ttGeneralId, payment_method: 'transferencia',

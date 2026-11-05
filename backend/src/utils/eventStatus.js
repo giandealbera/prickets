@@ -104,6 +104,7 @@ async function eventoOperable(eventId) {
 
 module.exports = {
   ESTADOS,
+  fechaCorte,
   eventoOperable,
   OPERABLES,
   esEstadoValido,
