@@ -62,17 +62,34 @@ const UpdatePrompt = () => {
         <button
           type="button"
           disabled={aplicando}
-          onClick={() => {
+          onClick={async () => {
             setAplicando(true);
-            // Camino normal: le avisa al service worker en espera que tome el
-            // control y recarga sola.
-            try { aplicar?.(true); } catch { /* seguimos al plan B */ }
-            // Plan B: si no hay un worker en espera —o la pestaña todavia no
-            // esta bajo su control, que es lo que pasa en la primera visita—
-            // el aviso no llega a nadie y el boton se quedaba colgado en
-            // "Actualizando...". Recargamos a mano: el objetivo es que el
-            // usuario termine con la version nueva, no el mecanismo.
-            setTimeout(() => window.location.reload(), 1500);
+
+            // El plan B de abajo recargaba SIEMPRE a los 1,5s, y esa recarga
+            // le pisaba el handshake al service worker: la pagina volvia a
+            // cargar desde la cache vieja, el worker nuevo seguia en espera y
+            // el cartel reaparecia. Tocar "Actualizar" no actualizaba nunca.
+            // Verificado en produccion: habia un worker instalado en estado
+            // "waiting" y mandarle SKIP_WAITING a mano si actualizaba.
+            //
+            // Ahora el plan B solo corre si el camino normal no llego a
+            // ningun lado, y le damos tiempo de sobra.
+            let tomoElControl = false;
+            const marcar = () => { tomoElControl = true; };
+            navigator.serviceWorker?.addEventListener?.('controllerchange', marcar);
+
+            // Camino normal: le avisa al worker en espera que tome el control.
+            // Cuando lo toma, la pagina se recarga sola.
+            try { await aplicar?.(true); } catch { /* seguimos al plan B */ }
+
+            // Plan B: no habia worker en espera, o la pestaña todavia no esta
+            // bajo el control de ninguno (pasa en la primera visita). Ahi el
+            // aviso no le llega a nadie y el boton quedaria colgado en
+            // "Actualizando...". Lo que importa es que el usuario termine en
+            // la version nueva, no el mecanismo.
+            setTimeout(() => {
+              if (!tomoElControl) window.location.reload();
+            }, 6000);
           }}
           className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
           style={{ background: '#5C6E5D', color: '#F1F4F2', border: '1px solid #6E826F' }}
