@@ -13,7 +13,7 @@ persistente) y **Vercel** (frontend Vite). Tiempo estimado: 15 minutos.
 ## Paso 1 — Backend en Railway
 
 1. Entra a https://railway.app/new
-2. **Deploy from GitHub repo** → seleccionar el repo `gianqr`
+2. **Deploy from GitHub repo** → seleccionar el repo `prickets`
 3. En el wizard del nuevo servicio:
    - **Root directory**: `backend`
    - **Build command**: (default) `npm install`
@@ -45,7 +45,7 @@ persistente) y **Vercel** (frontend Vite). Tiempo estimado: 15 minutos.
 ## Paso 2 — Frontend en Vercel
 
 1. Entra a https://vercel.com/new
-2. Importar el repo `gianqr`
+2. Importar el repo `prickets`
 3. En el wizard:
    - **Framework Preset**: Vite (auto-detecta)
    - **Root Directory**: `frontend`
