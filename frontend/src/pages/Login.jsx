@@ -80,7 +80,7 @@ const Login = () => {
             </svg>
           </div>
           <h1 className="text-3xl font-bold tracking-tight font-heading" style={{ color: '#E1E5E2' }}>
-            Gian<span style={{ color: '#788C79' }}>QR</span>
+            Pri<span style={{ color: '#788C79' }}>ckets</span>
           </h1>
           <p className="text-xs mt-1" style={{ color: '#8C948D' }}>Sistema de Entradas</p>
         </div>
@@ -222,7 +222,7 @@ const Login = () => {
         {/* El sello de build permite ver de un vistazo si el telefono esta
             corriendo la version nueva o una cacheada. */}
         <p className="text-center text-xs mt-6" style={{ color: '#3A413D' }}>
-          GianQR {APP_VERSION}
+          Prickets {APP_VERSION}
           <span className="block mt-0.5 font-mono" style={{ fontSize: '10px', color: '#2F3733' }}>
             {APP_BUILD}
           </span>

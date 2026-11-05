@@ -1,4 +1,4 @@
-# 🎵 GianQR — Sistema de Ventas de Entradas con QR
+# 🎵 Prickets — Sistema de Ventas de Entradas con QR
 
 Sistema completo para gestión y venta de entradas con código QR para boliche. Incluye panel de administración, escáner de puerta, caja de ventas y panel de promotores.
 
@@ -219,4 +219,4 @@ GET    /api/payments/report      Reporte de pagos (admin)
 
 ---
 
-*GianQR v1.0 — Sistema de ventas de entradas para boliche*
+*Prickets v1.0 — Sistema de ventas de entradas para boliche*

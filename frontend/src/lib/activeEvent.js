@@ -5,7 +5,7 @@
 //
 // Se setea al cargar EventDashboard. El FAB EventQuickReturn lo lee.
 
-const KEY = 'gianqr:activeEvent';
+const KEY = 'prickets:activeEvent';
 
 export function setActiveEvent(id, name) {
   if (!id) return;

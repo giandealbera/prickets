@@ -97,7 +97,7 @@ const ForgotPassword = () => {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black tracking-tight" style={{ color: '#C9974D' }}>GianQR</h1>
+          <h1 className="text-3xl font-black tracking-tight" style={{ color: '#C9974D' }}>Prickets</h1>
           <p className="text-sm mt-1" style={{ color: '#4A5568' }}>Recuperar acceso</p>
         </div>
 

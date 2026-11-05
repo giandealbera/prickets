@@ -90,7 +90,7 @@ const sendTest = async (req, res) => {
     const subs = await db.query('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?', [req.user.id]);
     if (!subs.rows.length) return res.status(404).json({ error: 'No tenes notificaciones activadas en ningun dispositivo' });
     const payload = JSON.stringify({
-      title: 'GianQR',
+      title: 'Prickets',
       body:  'Notificaciones funcionando',
       url:   '/eventos',
     });

@@ -10,14 +10,14 @@
  *
  *   Para Resend:
  *     RESEND_API_KEY=re_xxxxxxxx
- *     MAIL_FROM=GianQR <noreply@tudominio.com>   ← dominio verificado en Resend
+ *     MAIL_FROM=Prickets <noreply@tudominio.com>   ← dominio verificado en Resend
  *
  *   Para SMTP (ej Gmail con App Password):
  *     SMTP_HOST=smtp.gmail.com
  *     SMTP_PORT=587          (opcional, default 587)
  *     SMTP_USER=tucuenta@gmail.com
  *     SMTP_PASS=xxxx xxxx xxxx xxxx  ← App Password de Google (no la clave normal)
- *     MAIL_FROM=GianQR <tucuenta@gmail.com>
+ *     MAIL_FROM=Prickets <tucuenta@gmail.com>
  *
  * `isMailConfigured()` → true si algún proveedor está listo.
  * `sendMail({ to, subject, text, html })` → envía el mail, siempre resuelve
@@ -26,7 +26,7 @@
 
 const nodemailer = require('nodemailer');
 
-const FROM = () => process.env.MAIL_FROM || 'GianQR <noreply@gianqr.com>';
+const FROM = () => process.env.MAIL_FROM || 'Prickets <noreply@gianqr.com>';
 
 // ─── Detección de proveedor ───────────────────────────────────────────────────
 
@@ -173,7 +173,7 @@ function renderEmail({ title, intro, cta, note }) {
                     border-radius:16px;padding:32px;font-family:-apple-system,BlinkMacSystemFont,
                     'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
         <tr><td style="padding:0 0 24px;">
-          <span style="font-size:22px;font-weight:900;color:#C9974D;letter-spacing:-0.5px;">GianQR</span>
+          <span style="font-size:22px;font-weight:900;color:#C9974D;letter-spacing:-0.5px;">Prickets</span>
         </td></tr>
         <tr><td style="padding:0 0 12px;color:#FFFFFF;font-size:19px;font-weight:600;">
           ${escapeHtml(title)}
@@ -189,7 +189,7 @@ function renderEmail({ title, intro, cta, note }) {
       </table>
       <p style="color:#4B5563;font-size:11px;margin:18px 0 0;font-family:-apple-system,
                 BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        GianQR — Sistema de entradas
+        Prickets — Sistema de entradas
       </p>
     </td></tr>
   </table>

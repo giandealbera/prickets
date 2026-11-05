@@ -16,7 +16,7 @@ const os = require('os');
 
 const PORT = process.env.E2E_PORT || 4100;
 const BASE = `http://127.0.0.1:${PORT}/api`;
-const DB   = path.join(os.tmpdir(), `gianqr-e2e-${process.pid}.sqlite`);
+const DB   = path.join(os.tmpdir(), `prickets-e2e-${process.pid}.sqlite`);
 
 const limpiarBase = () => {
   for (const suf of ['', '-wal', '-shm']) {

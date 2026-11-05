@@ -5,8 +5,8 @@
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch { data = { title: 'GianQR', body: event.data?.text() || '' }; }
-  const title = data.title || 'GianQR';
+  try { data = event.data ? event.data.json() : {}; } catch { data = { title: 'Prickets', body: event.data?.text() || '' }; }
+  const title = data.title || 'Prickets';
   const options = {
     body:  data.body || '',
     icon:  '/favicon.svg',

@@ -329,11 +329,11 @@ const forgotPassword = async (req, res) => {
       const nombre    = pending.user.name || '';
       sendMail({
         to: pending.user.email,
-        subject: 'GianQR — Restablecer tu contraseña',
-        text: `Hola ${nombre},\n\nPediste restablecer tu contraseña de GianQR. Entrá a este link para elegir una nueva (vale 1 hora y se puede usar una sola vez):\n\n${resetLink}\n\nSi no fuiste vos, ignorá este mensaje: tu contraseña actual sigue funcionando.\n\n— GianQR`,
+        subject: 'Prickets — Restablecer tu contraseña',
+        text: `Hola ${nombre},\n\nPediste restablecer tu contraseña de Prickets. Entrá a este link para elegir una nueva (vale 1 hora y se puede usar una sola vez):\n\n${resetLink}\n\nSi no fuiste vos, ignorá este mensaje: tu contraseña actual sigue funcionando.\n\n— Prickets`,
         html: renderEmail({
           title: `Hola ${nombre}`,
-          intro: 'Pediste restablecer tu contraseña de GianQR. Tocá el botón para elegir una nueva. El link vale 1 hora y se puede usar una sola vez.',
+          intro: 'Pediste restablecer tu contraseña de Prickets. Tocá el botón para elegir una nueva. El link vale 1 hora y se puede usar una sola vez.',
           cta:   { label: 'Elegir nueva contraseña', url: resetLink },
           note:  'Si no fuiste vos, ignorá este mensaje: tu contraseña actual sigue funcionando.',
         }),
@@ -494,11 +494,11 @@ const resetPassword = async (req, res) => {
       const frontUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',')[0].trim();
       sendMail({
         to: user.email,
-        subject: 'GianQR — Tu contraseña fue cambiada',
-        text: `Hola ${user.name || ''},\n\nTe confirmamos que la contraseña de tu cuenta de GianQR se cambió recién, y se cerraron todas las sesiones abiertas.\n\nSi no fuiste vos, entrá ya mismo a ${frontUrl}/olvide-password y restablecela de nuevo, o avisale a un administrador.\n\n— GianQR`,
+        subject: 'Prickets — Tu contraseña fue cambiada',
+        text: `Hola ${user.name || ''},\n\nTe confirmamos que la contraseña de tu cuenta de Prickets se cambió recién, y se cerraron todas las sesiones abiertas.\n\nSi no fuiste vos, entrá ya mismo a ${frontUrl}/olvide-password y restablecela de nuevo, o avisale a un administrador.\n\n— Prickets`,
         html: renderEmail({
           title: 'Tu contraseña fue cambiada',
-          intro: `Hola ${user.name || ''}, te confirmamos que la contraseña de tu cuenta de GianQR se cambió recién. Por seguridad cerramos todas las sesiones abiertas.`,
+          intro: `Hola ${user.name || ''}, te confirmamos que la contraseña de tu cuenta de Prickets se cambió recién. Por seguridad cerramos todas las sesiones abiertas.`,
           cta:   { label: 'No fui yo, restablecer', url: `${frontUrl}/olvide-password` },
           note:  'Si el cambio lo hiciste vos, podés ignorar este mensaje.',
         }),

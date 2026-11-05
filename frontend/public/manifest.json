@@ -1,6 +1,6 @@
 {
-  "name": "GianQR — Sistema de Entradas",
-  "short_name": "GianQR",
+  "name": "Prickets — Sistema de Entradas",
+  "short_name": "Prickets",
   "description": "Venta y control de entradas con QR",
   "start_url": "/",
   "scope": "/",

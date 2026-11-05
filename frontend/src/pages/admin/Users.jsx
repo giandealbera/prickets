@@ -70,7 +70,7 @@ const Users = () => {
 
   const copyCreds = () => {
     if (!createdUser) return;
-    const txt = `GianQR - Acceso\n\nNombre: ${createdUser.name} ${createdUser.apellido || ''}\nRol: ${ROLE_LABELS[createdUser.role] || createdUser.role}\nUsuario: ${createdUser.usuario}\nContrasena: ${createdUser.password}\n\nIngresa en: ${window.location.origin}/login`;
+    const txt = `Prickets - Acceso\n\nNombre: ${createdUser.name} ${createdUser.apellido || ''}\nRol: ${ROLE_LABELS[createdUser.role] || createdUser.role}\nUsuario: ${createdUser.usuario}\nContrasena: ${createdUser.password}\n\nIngresa en: ${window.location.origin}/login`;
     navigator.clipboard.writeText(txt).then(() => toast.success('Credenciales copiadas'));
   };
 

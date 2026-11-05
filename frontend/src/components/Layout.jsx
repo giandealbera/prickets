@@ -28,7 +28,7 @@ const Layout = ({ children }) => {
         <header className="lg:hidden sticky top-0 z-30 backdrop-blur-lg pt-safe" style={{ background: 'rgba(23,26,25,0.98)', borderBottom: '1px solid #2B312E' }}>
           <div className="px-4 py-3 flex items-center justify-between safe-area-x">
             <div>
-              <span className="text-xl font-bold font-heading select-none" style={{ color: '#E1E5E2' }}>Gian<span style={{ color: '#788C79' }}>QR</span></span>
+              <span className="text-xl font-bold font-heading select-none" style={{ color: '#E1E5E2' }}>Pri<span style={{ color: '#788C79' }}>ckets</span></span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm truncate max-w-[120px]" style={{ color: '#8C948D' }}>{user?.name}</span>

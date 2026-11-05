@@ -2,7 +2,7 @@
  * Migración de datos SQLite -> Postgres.
  *
  * Uso:
- *   1. Tener la SQLite local en database/gianqr.sqlite (o setear DB_PATH)
+ *   1. Tener la SQLite local en database/prickets.sqlite (o setear DB_PATH)
  *   2. Tener DATABASE_URL apuntando al Postgres destino (Railway, Neon, etc.)
  *   3. Correr:   node scripts/migrate-sqlite-to-pg.js
  *
@@ -46,7 +46,7 @@ const TABLES = [
 
 async function main() {
   // SQLite source
-  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../database/gianqr.sqlite');
+  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../database/prickets.sqlite');
   console.log('SQLite source:', DB_PATH);
   const sqlite = await open({ filename: DB_PATH, driver: sqlite3.Database, mode: sqlite3.OPEN_READONLY });
 

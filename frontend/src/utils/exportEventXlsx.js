@@ -61,9 +61,9 @@ export async function exportEventXlsx(eventId, opts = {}) {
   const promoters = r.data.promoter_sales || [];
 
   const wb = new ExcelJS.Workbook();
-  wb.creator       = 'GianQR';
+  wb.creator       = 'Prickets';
   wb.created       = new Date();
-  wb.lastModifiedBy = 'GianQR';
+  wb.lastModifiedBy = 'Prickets';
 
   // ---------- Hoja 1: Resumen ----------
   const resumen = wb.addWorksheet('Resumen');
@@ -80,7 +80,7 @@ export async function exportEventXlsx(eventId, opts = {}) {
   };
 
   // Encabezado
-  const title = resumen.addRow(['GianQR — Resumen del evento', '']);
+  const title = resumen.addRow(['Prickets — Resumen del evento', '']);
   title.height = 26;
   title.getCell(1).font = { size: 16, bold: true, color: { argb: 'FFC9974D' } };
   resumen.mergeCells(`A${title.number}:B${title.number}`);

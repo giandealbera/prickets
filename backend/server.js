@@ -110,7 +110,7 @@ const start = async () => {
   app.listen(PORT, () => {
     console.log(`
   ╔════════════════════════════════╗
-  ║   🎵  GianQR Backend v1.0     ║
+  ║   🎵  Prickets Backend v1.0   ║
   ║   Puerto: ${PORT}                  ║
   ╚════════════════════════════════╝
     `);

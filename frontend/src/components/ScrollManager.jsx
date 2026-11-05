@@ -14,7 +14,7 @@ import { useLocation, useNavigationType } from 'react-router-dom';
 // `BrowserRouter` no, hay que hacerlo a mano. sessionStorage sobrevive a
 // recargas del tab; se limpia al cerrar la pestaña.
 
-const KEY = 'gianqr:scroll';
+const KEY = 'prickets:scroll';
 
 const readMap = () => {
   try { return JSON.parse(sessionStorage.getItem(KEY) || '{}'); } catch { return {}; }

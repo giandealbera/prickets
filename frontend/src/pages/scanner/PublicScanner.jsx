@@ -223,7 +223,7 @@ const PublicScanner = () => {
     <div className="min-h-dvh bg-gray-950 text-white">
       {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-4 text-center">
-        <p className="text-xl font-black tracking-tight mb-2" style={{ color: '#C9974D' }}>GianQR</p>
+        <p className="text-xl font-black tracking-tight mb-2" style={{ color: '#C9974D' }}>Prickets</p>
         <p className="text-xs text-gray-400 uppercase tracking-widest mb-0.5">{info.event_name}</p>
         <h1 className="text-xl font-bold text-brand">
           {info.label || info.ticket_type_name}

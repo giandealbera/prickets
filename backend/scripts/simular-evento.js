@@ -229,7 +229,7 @@ const fechaLocal = (offsetMs = 0) => {
   check('una reserva sin vender no entra', scanRes.status === 402, `HTTP ${scanRes.status}`);
 
   // c) QR inventado
-  const falso = await req('POST', `/scan/${tokPruebas}`, { body: { qr_code: 'GIANQR-FFFFFFFFFFFFFFFFFFFF' } });
+  const falso = await req('POST', `/scan/${tokPruebas}`, { body: { qr_code: 'PRICKETS-FFFFFFFFFFFFFFFFFFFF' } });
   check('un QR inventado no entra', falso.status === 404, `HTTP ${falso.status}`);
 
   // d) el id del ticket no sirve como QR

@@ -55,7 +55,7 @@ async function initSqlite() {
   const sqlite3 = require('sqlite3');
   const { open } = require('sqlite');
 
-  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../../database/gianqr.sqlite');
+  const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../../database/prickets.sqlite');
   const fs = require('fs');
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

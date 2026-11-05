@@ -19,7 +19,7 @@ const { authenticator } = require('otplib');
 // y el siguiente). Asi un usuario que tarda en tipear no falla por 1s.
 authenticator.options = { step: 30, window: 1 };
 
-const ISSUER = process.env.TFA_ISSUER || 'GianQR';
+const ISSUER = process.env.TFA_ISSUER || 'Prickets';
 
 function generateSecret() {
   return authenticator.generateSecret();

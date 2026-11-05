@@ -20,11 +20,17 @@
  * Los codigos ya emitidos NO se tocan: se siguen guardando y comparando por
  * la columna qr_code, asi que las entradas vendidas escanean igual que antes.
  * Solo las nuevas nacen con un codigo que no se puede deducir.
+ *
+ * El prefijo paso de GIANQR- a PRICKETS- con el cambio de nombre. Es cosmetico:
+ * el escaneo busca el codigo exacto en la columna qr_code y en ningun lado se
+ * valida el prefijo, asi que las entradas vendidas con el prefijo viejo siguen
+ * entrando igual. Durante un tiempo un mismo evento va a tener codigos de los
+ * dos tipos y esta bien.
  */
 const crypto = require('crypto');
 
 function nuevoCodigoQR() {
-  return `GIANQR-${crypto.randomBytes(10).toString('hex').toUpperCase()}`;
+  return `PRICKETS-${crypto.randomBytes(10).toString('hex').toUpperCase()}`;
 }
 
 module.exports = { nuevoCodigoQR };

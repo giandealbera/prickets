@@ -1,5 +1,5 @@
 /**
- * GianQR - Seed inicial
+ * Prickets - Seed inicial
  * Crea el usuario admin por defecto si no existe.
  * Se ejecuta automáticamente al arrancar el servidor.
  */

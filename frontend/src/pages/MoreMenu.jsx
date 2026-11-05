@@ -111,7 +111,7 @@ const MoreMenu = () => {
             <MenuItem iconKey="info"  label="Sesiones activas" desc="Dispositivos donde estás logueado" onClick={() => navigate('/configuracion/sesiones')} />
             {/* Mostramos el build: si el telefono quedo con una version
                 vieja cacheada, se ve aca sin tener que adivinar. */}
-            <MenuItem iconKey="info"  label="Acerca de GianQR"
+            <MenuItem iconKey="info"  label="Acerca de Prickets"
                       desc={`${APP_VERSION} · ${APP_BUILD}`} onClick={() => {}} />
           </div>
         </div>

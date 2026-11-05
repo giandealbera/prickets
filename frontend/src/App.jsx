@@ -90,7 +90,7 @@ class ErrorBoundary extends Component {
       return (
         <div className="min-h-dvh flex items-center justify-center px-4 text-center" style={{ background: '#111312' }}>
           <div className="space-y-4 max-w-sm">
-            <p className="text-3xl font-bold font-heading text-white select-none">Gian<span style={{ color: '#788C79' }}>QR</span></p>
+            <p className="text-3xl font-bold font-heading text-white select-none">Pri<span style={{ color: '#788C79' }}>ckets</span></p>
             <p className="text-sm" style={{ color: '#8C948D' }}>Ocurrió un inconveniente al cargar esta página.</p>
             <button
               onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}

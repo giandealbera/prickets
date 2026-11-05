@@ -30,7 +30,7 @@ export function useCerrarConAtras(abierto, cerrar) {
   useEffect(() => {
     if (!abierto) return;
 
-    window.history.pushState({ modalGianqr: true }, '');
+    window.history.pushState({ modalPrickets: true }, '');
     entradaPropia.current = true;
 
     const alVolver = () => {

@@ -264,7 +264,7 @@ const PublicBuy = () => {
   if (error) return (
     <div className="min-h-dvh flex items-center justify-center px-4" style={{ background: '#111312' }}>
       <div className="text-center space-y-4 max-w-sm">
-        <p className="text-3xl font-bold font-heading text-white select-none">Gian<span style={{ color: '#788C79' }}>QR</span></p>
+        <p className="text-3xl font-bold font-heading text-white select-none">Pri<span style={{ color: '#788C79' }}>ckets</span></p>
         <p className="text-red-400 text-sm">{error}</p>
         <button
           onClick={() => { setError(null); setRecoverOpen(true); }}
@@ -284,7 +284,7 @@ const PublicBuy = () => {
       <div className="max-w-md mx-auto">
 
         <div className="text-center mb-6">
-          <p className="text-3xl font-bold font-heading text-white select-none">Gian<span style={{ color: '#788C79' }}>QR</span></p>
+          <p className="text-3xl font-bold font-heading text-white select-none">Pri<span style={{ color: '#788C79' }}>ckets</span></p>
           <p className="text-xs mt-1" style={{ color: '#8C948D' }}>Registro y emisión de entrada</p>
         </div>
 
@@ -704,7 +704,7 @@ const PublicBuy = () => {
           </div>
         )}
 
-        <p className="text-center text-xs mt-6" style={{ color: '#1E2530' }}>GianQR — Sistema de Entradas</p>
+        <p className="text-center text-xs mt-6" style={{ color: '#1E2530' }}>Prickets — Sistema de Entradas</p>
       </div>
     </div>
   );

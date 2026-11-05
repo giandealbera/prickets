@@ -62,7 +62,7 @@ export async function downloadTicketsPdf({ tickets, eventName, promoterName }) {
     // Header: marca
     pdf.setFontSize(24);
     pdf.setTextColor(201, 151, 77);  // brand gold
-    pdf.text('GianQR', pageW / 2, 25, { align: 'center' });
+    pdf.text('Prickets', pageW / 2, 25, { align: 'center' });
 
     // Evento
     pdf.setFontSize(16);
@@ -108,6 +108,6 @@ export async function downloadTicketsPdf({ tickets, eventName, promoterName }) {
     pdf.text('Conservá este QR — lo necesitás para ingresar', pageW / 2, pageH - 8, { align: 'center' });
   }
 
-  const filename = `gianqr-${(eventName || 'entradas').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}.pdf`;
+  const filename = `prickets-${(eventName || 'entradas').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}.pdf`;
   pdf.save(filename);
 }

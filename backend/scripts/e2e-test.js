@@ -4,9 +4,9 @@
  *
  * Uso:
  *   1) Levantar el server de prueba:
- *        PORT=4100 DB_PATH=<tmp>/gianqr-e2e.sqlite NODE_ENV=development node server.js
+ *        PORT=4100 DB_PATH=<tmp>/prickets-e2e.sqlite NODE_ENV=development node server.js
  *   2) Correr:
- *        E2E_URL=http://127.0.0.1:4100/api E2E_DB=<tmp>/gianqr-e2e.sqlite node scripts/e2e-test.js
+ *        E2E_URL=http://127.0.0.1:4100/api E2E_DB=<tmp>/prickets-e2e.sqlite node scripts/e2e-test.js
  *
  * El script imprime PASS/FAIL por check y sale con codigo 1 si algo fallo.
  */
@@ -28,7 +28,7 @@ const fechaLocal = (offsetMs = 0) => {
          `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 };
 
-const DB_FILE = process.env.E2E_DB || path.join(__dirname, '../tmp-e2e/gianqr-e2e.sqlite');
+const DB_FILE = process.env.E2E_DB || path.join(__dirname, '../tmp-e2e/prickets-e2e.sqlite');
 
 const ADMIN_EMAIL = 'gianfrancodealbera@gmail.com';
 const ADMIN_PASS  = '43955952Gd';
@@ -526,7 +526,7 @@ const dni = (n) => String(30000000 + n);
     const s2 = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: qr } });
     check('scan admin: re-escaneo -> 409', s2.status === 409 && s2.data?.valid === false, JSON.stringify(s2.status));
 
-    const s3 = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: 'GIANQR-NOEXISTE' } });
+    const s3 = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: 'PRICKETS-NOEXISTE' } });
     check('scan admin: QR inexistente -> 404', s3.status === 404, `status=${s3.status}`);
 
     // Filtro por tipo: escanear un General con filtro VIP -> 403
@@ -567,7 +567,7 @@ const dni = (n) => String(30000000 + n);
     check('scanner publico: tipo no aceptado -> 400', s3.status === 400, `status=${s3.status}`);
 
     // Ticket de otro evento
-    const s4 = await req('POST', `/scan/${tok}`, { body: { qr_code: 'GIANQR-XXXXXXXX' } });
+    const s4 = await req('POST', `/scan/${tok}`, { body: { qr_code: 'PRICKETS-XXXXXXXX' } });
     check('scanner publico: QR inexistente -> 404', s4.status === 404, `status=${s4.status}`);
 
     // Listado + scope: owner ve los suyos, admin del arbol tambien
@@ -1268,7 +1268,7 @@ const dni = (n) => String(30000000 + n);
   }
 
   // ---------- El QR no se puede deducir del id ----------
-  // Antes el codigo era 'GIANQR-' + los 8 primeros caracteres del id, y
+  // Antes el codigo era el prefijo + los 8 primeros caracteres del id, y
   // /public/tickets-info devuelve los ids a cualquiera con un link de
   // reserva: con el id a la vista se calculaba el QR y se entraba con la
   // entrada de otro. El escaner ademas aceptaba el id crudo.
@@ -1286,12 +1286,36 @@ const dni = (n) => String(30000000 + n);
       event_id: evQ.data?.id, ticket_type_id: ttQ.data?.id, payment_method: 'efectivo',
       attendees: [{ buyer_name: 'Ana', buyer_apellido: 'Secreta', buyer_dni: '30555111' }] } });
     const tQ = compraQ.data?.tickets?.[0];
-    const deducido = 'GIANQR-' + String(tQ?.id || '').substring(0, 8).toUpperCase();
+    // El prefijo sale del codigo real: si quedara escrito a mano y se volviera
+    // a cambiar el nombre, este check pasaria solo porque los prefijos no
+    // coinciden, sin probar nada.
+    const prefijo  = String(tQ?.qr_code || '').split('-')[0];
+    const deducido = `${prefijo}-` + String(tQ?.id || '').substring(0, 8).toUpperCase();
 
     check('el qr_code NO se deduce del id del ticket',
           tQ?.qr_code && tQ.qr_code !== deducido, `qr=${tQ?.qr_code}`);
     check('el qr_code tiene entropia suficiente',
           (tQ?.qr_code || '').length >= 24, `largo=${(tQ?.qr_code || '').length}`);
+
+    // --- Prefijo: las entradas viejas tienen que seguir entrando ---------
+    // Con el cambio de nombre el prefijo paso de GIANQR- a PRICKETS-. Las
+    // entradas vendidas antes del cambio siguen guardadas con el prefijo
+    // viejo, y son miles. Si en algun lado se validara el prefijo en vez de
+    // buscar el codigo exacto, esa gente se quedaria afuera en la puerta.
+    check('las entradas nuevas usan el prefijo nuevo',
+          String(tQ?.qr_code || '').startsWith('PRICKETS-'), `qr=${tQ?.qr_code}`);
+
+    // Entrada aparte: le reescribimos el codigo al prefijo viejo y la
+    // escaneamos. No tocamos tQ, que los checks de abajo todavia usan.
+    const compraVieja = await req('POST', '/public/tickets/CASA', { body: {
+      event_id: evQ.data?.id, ticket_type_id: ttQ.data?.id, payment_method: 'efectivo',
+      attendees: [{ buyer_name: 'Clara', buyer_apellido: 'Vieja', buyer_dni: '30555333' }] } });
+    const tVieja  = compraVieja.data?.tickets?.[0];
+    const qrViejo = 'GIANQR-A1B2C3D4E5F60718293A';
+    await dbRun('UPDATE tickets SET qr_code = ? WHERE id = ?', [qrViejo, tVieja?.id]);
+    const scanViejo = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: qrViejo } });
+    check('una entrada con el prefijo viejo sigue escaneando',
+          scanViejo.status === 200, `HTTP ${scanViejo.status} ${JSON.stringify(scanViejo.data)}`);
 
     const porId = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: tQ?.id } });
     check('el id crudo no abre la puerta', porId.status === 404, `HTTP ${porId.status}`);

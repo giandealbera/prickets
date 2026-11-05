@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { BACKEND_URL } from './config';
+import { getToken, clearToken } from '../lib/authToken';
 
 const api = axios.create({
   baseURL: BACKEND_URL,
@@ -8,7 +9,7 @@ const api = axios.create({
 
 // Adjuntar token en cada request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('gianqr_token');
+  const token = getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -35,7 +36,7 @@ api.interceptors.response.use(
     if (looksLikeAuthInvalidation) {
       const path = window.location.pathname;
       if (!path.startsWith('/login')) {
-        localStorage.removeItem('gianqr_token');
+        clearToken();
         window.location.href = '/login';
       }
     }

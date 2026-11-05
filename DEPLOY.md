@@ -1,4 +1,4 @@
-# Deploy GianQR a internet
+# Deploy Prickets a internet
 
 Esta guía deploya el proyecto en **Railway** (backend Node + SQLite con volumen
 persistente) y **Vercel** (frontend Vite). Tiempo estimado: 15 minutos.
@@ -36,7 +36,7 @@ persistente) y **Vercel** (frontend Vite). Tiempo estimado: 15 minutos.
    ```
    (FRONTEND_URL es provisorio, lo actualizamos cuando deployemos el front)
 
-6. Railway re-deploya solo. Esperar a que el log diga `GianQR Backend v1.0`
+6. Railway re-deploya solo. Esperar a que el log diga `Prickets Backend v1.0`
 7. Verificar abriendo `https://[tu-backend].up.railway.app/api/health` →
    debe responder `{"status":"ok","sistema":"GianQR","version":"1.0.0"}`
 

@@ -89,7 +89,7 @@ const PromoterDashboard = () => {
 
   const copyCredenciales = () => {
     if (!createdMember) return;
-    const txt = `GianQR - Acceso de vendedor\n\nNombre: ${createdMember.name} ${createdMember.apellido || ''}\nUsuario: ${createdMember.usuario}\nContrasena: ${createdMember.password}\n\nIngresa en: ${window.location.origin}/login`;
+    const txt = `Prickets - Acceso de vendedor\n\nNombre: ${createdMember.name} ${createdMember.apellido || ''}\nUsuario: ${createdMember.usuario}\nContrasena: ${createdMember.password}\n\nIngresa en: ${window.location.origin}/login`;
     navigator.clipboard.writeText(txt).then(() => toast.success('Credenciales copiadas'));
   };
 

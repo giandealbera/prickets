@@ -1,7 +1,7 @@
 {
-  "name": "gianqr-backend",
+  "name": "prickets-backend",
   "version": "1.0.0",
-  "description": "Backend del sistema GianQR - Ventas de entradas con QR para boliche",
+  "description": "Backend del sistema Prickets - Ventas de entradas con QR para boliche",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

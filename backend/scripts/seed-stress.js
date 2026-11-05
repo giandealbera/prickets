@@ -5,6 +5,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { v4: uuidv4 } = require('uuid');
 const db = require('../src/config/database');
+const { nuevoCodigoQR } = require('../src/utils/qrCode');
 
 const NOMBRES = ['Juan', 'Pedro', 'Maria', 'Lucia', 'Sofia', 'Mateo', 'Tomas', 'Valentina', 'Lautaro', 'Camila',
                  'Agustin', 'Martina', 'Joaquin', 'Olivia', 'Bautista', 'Catalina', 'Benjamin', 'Emma', 'Santiago',
@@ -80,7 +81,7 @@ async function run() {
   await db.transaction(async (conn) => {
     for (let i = 0; i < qty; i++) {
       const id     = uuidv4();
-      const qrCode = `GIANQR-${id.substring(0, 8).toUpperCase()}`;
+      const qrCode = nuevoCodigoQR();
       const nombre   = pick(NOMBRES);
       const apellido = pick(APELLIDOS);
       const localidad = pick(LOCALIDADES);

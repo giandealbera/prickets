@@ -9,7 +9,7 @@ import { isStandalone, isIosSafari } from '../lib/share';
 //
 // Se descarta por sesion (sessionStorage) — si el usuario lo cierra, no
 // vuelve a salir hasta que recargue la pestania. Asi no se vuelve molesto.
-const DISMISSED_KEY = 'gianqr:install-tip-dismissed';
+const DISMISSED_KEY = 'prickets:install-tip-dismissed';
 
 // Rutas donde NO mostramos el tip: el portero esta enfocado en escanear y
 // el comprador hace un flujo de una sola vez — sumarle "instalá la app"

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import api from '../api/axios';
+import { getToken, setToken, clearToken } from '../lib/authToken';
 
 const AuthContext = createContext(null);
 
@@ -8,11 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('gianqr_token');
+    const token = getToken();
     if (token) {
       api.get('/auth/me')
         .then(r => setUser(r.data))
-        .catch(() => localStorage.removeItem('gianqr_token'))
+        .catch(() => clearToken())
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -31,14 +32,14 @@ export const AuthProvider = ({ children }) => {
     if (res.data.needs_2fa) {
       return { needs_2fa: true, partial_token: res.data.partial_token };
     }
-    localStorage.setItem('gianqr_token', res.data.token);
+    setToken(res.data.token);
     setUser(res.data.user);
     return res.data.user;
   }, []);
 
   const verifyTwoFactor = useCallback(async (partial_token, code) => {
     const res = await api.post('/auth/2fa/verify', { partial_token, code });
-    localStorage.setItem('gianqr_token', res.data.token);
+    setToken(res.data.token);
     setUser(res.data.user);
     return res.data.user;
   }, []);
@@ -48,13 +49,13 @@ export const AuthProvider = ({ children }) => {
     // local igual se borra y la sesion muere en su exp natural). Header
     // explicito: el interceptor lee localStorage en un microtask y para ese
     // momento el token ya fue borrado.
-    const token = localStorage.getItem('gianqr_token');
+    const token = getToken();
     if (token) {
       api.post('/sessions/logout', null, {
         headers: { Authorization: `Bearer ${token}` },
       }).catch(() => {});
     }
-    localStorage.removeItem('gianqr_token');
+    clearToken();
     setUser(null);
   }, []);
 

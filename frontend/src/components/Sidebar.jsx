@@ -59,7 +59,7 @@ const Sidebar = () => {
     <aside className="w-56 min-h-dvh flex flex-col" style={{ background: '#171A19', borderRight: '1px solid #2B312E' }}>
       {/* Logo */}
       <div className="px-6 py-5" style={{ borderBottom: '1px solid #2B312E' }}>
-        <span className="text-xl font-bold tracking-tight font-heading" style={{ color: '#E1E5E2' }}>Gian<span style={{ color: '#788C79' }}>QR</span></span>
+        <span className="text-xl font-bold tracking-tight font-heading" style={{ color: '#E1E5E2' }}>Pri<span style={{ color: '#788C79' }}>ckets</span></span>
         <p className="text-xs mt-0.5" style={{ color: '#8C948D' }}>Sistema de Entradas</p>
       </div>
 
