@@ -173,15 +173,47 @@ const fechaLocal = (offsetMs = 0) => {
   let entraron = 0, rechazos = 0, limitados = 0, erroresScan = 0;
   const motivos = {};
 
-  const scans = entradas.map((e, i) => () =>
-    req('POST', `/scan/${tokens[i % tokens.length]}`, { body: { qr_code: e.qr } }));
+  // Ritmo. Esto antes decia en un comentario que escaneaba a ritmo realista y
+  // reintentaba ante 429, pero no hacia ninguna de las dos: tiraba los 3000 de
+  // golpe. Resultado, entraban exactamente PORTEROS x 120 (el cupo del primer
+  // minuto) y el resto rebotaba, asi que la simulacion "fallaba" siempre
+  // midiendo la compresion del test y no el sistema.
+  //
+  // Ahora se espacian los escaneos para no pasar de RITMO por puerta por
+  // minuto. Por defecto 400, que es holgado contra el tope real de 600 y a la
+  // vez bastante mas rapido que cualquier puerta de verdad (20 o 30 por
+  // minuto en el pico). Una noche entera entra en menos de un minuto de test.
+  const RITMO     = Number(process.env.RITMO || 400);   // escaneos/min por puerta
+  const esperaMs  = 60000 / (RITMO * PORTEROS);
+  const dormir    = (ms) => new Promise(r => setTimeout(r, ms));
 
-  // Ritmo realista: un portero escanea como mucho ~1 por segundo sostenido, y
-  // el limite por link es 120/min. Tirar 3000 de golpe solo mide el rate
-  // limit, no el sistema. Reintentamos una vez ante 429 para distinguir
-  // "el limite me freno un instante" de "no entro".
-  console.log(`  ${scans.length} escaneos por ${PORTEROS} puertas, ${PORTEROS * 2} en paralelo...`);
+  let proximo = Date.now();
+  const turno = async () => {
+    const mio = proximo;
+    proximo += esperaMs;
+    const falta = mio - Date.now();
+    if (falta > 0) await dormir(falta);
+  };
+
+  // Un 429 suelto no es "esta persona no entro": es el limite frenando un
+  // instante. Reintentamos una vez, que es lo que haria el portero.
+  const scans = entradas.map((e, i) => async () => {
+    await turno();
+    const tok = tokens[i % tokens.length];
+    let r = await req('POST', `/scan/${tok}`, { body: { qr_code: e.qr } });
+    if (r.status === 429) {
+      await dormir(1000);
+      r = await req('POST', `/scan/${tok}`, { body: { qr_code: e.qr } });
+      if (r.status !== 429) r.reintentado = true;
+    }
+    return r;
+  });
+
+  console.log(`  ${scans.length} escaneos por ${PORTEROS} puertas a ${RITMO}/min cada una ` +
+              `(~${Math.round(scans.length * esperaMs / 1000)}s)...`);
   const resScan = await enParalelo(scans, PORTEROS * 2);
+  const reintentados = resScan.filter(r => r.reintentado).length;
+  if (reintentados) console.log(`  ${reintentados} escaneos entraron recien en el reintento`);
   for (const r of resScan) {
     msScan.push(r.ms);
     if (r.status === 200 && r.data?.valid) entraron++;
@@ -195,8 +227,9 @@ const fechaLocal = (offsetMs = 0) => {
   if (Object.keys(motivos).length) console.log('  motivos:', JSON.stringify(motivos));
   check(`entraron las ${ENTRADAS} personas`, entraron === ENTRADAS, `entraron ${entraron}`);
   check('ningun escaneo dio error inesperado', erroresScan === 0, `${erroresScan} errores`);
-  check('el rate limit no corto a nadie', limitados === 0,
-        `${limitados} escaneos rebotados por limite — en la puerta serian personas esperando`);
+  check('el rate limit no dejo a nadie afuera', limitados === 0,
+        `${limitados} escaneos rebotados por limite aun despues de reintentar — ` +
+        'en la puerta serian personas esperando');
   check('el escaneo responde rapido (p95 < 1s)', ts.p95 < 1000, `p95=${ts.p95}ms`);
 
   // ---------------------------------------------------------------- 4. ATAQUES

@@ -134,17 +134,29 @@ const publicTicketsInfoLimiter = rateLimit({
   message: { error: 'Demasiadas consultas, esperá un momento' },
 });
 
-// Public scan: 120/min POR LINK DE PORTERO, no por IP.
+// Public scan: 600/min POR LINK DE PORTERO, no por IP.
 //
 // Con la clave por IP, los 4 o 5 porteros de la puerta —todos en el WiFi del
 // lugar, todos con la misma IP publica— compartian un unico cupo de 60/min.
 // En la entrada fuerte se lo comian entre ellos y el escaneo empezaba a
 // fallar justo en el peor momento. Cada link tiene su propio cupo ahora, y un
 // link es un uuid: el que no lo tiene no llega a este endpoint igual.
+//
+// El tope por link paso de 120 a 600 por minuto. El sistema de puertas
+// numeradas da un link a cada portero, y con eso 120/min sobra: una puerta
+// real hace 20 o 30 escaneos por minuto en el pico. Pero nada obliga a usarlo
+// asi, y lo comodo es mandar UN link al grupo de WhatsApp. Diez porteros
+// compartiendo un link, a 12 escaneos por minuto cada uno, dan 120: justo el
+// limite, con la cola esperando afuera.
+//
+// Subirlo no abre nada: para llegar aca hay que tener el uuid del link, los
+// codigos QR son de 80 bits (adivinar es inviable a cualquier ritmo) y cada
+// escaneo cuesta ~20ms, asi que 600/min es trafico despreciable para el
+// servidor. Lo que el tope frena es un cliente desbocado, no un ataque.
 const publicScanLimiter = rateLimit({
   ...baseConfig,
   windowMs: 60 * 1000,
-  max: 120,
+  max: 600,
   keyGenerator: (req) =>
     req.params?.token ? `scan:${req.params.token}` : `ip:${ipKeyGenerator(req.ip)}`,
   message: { error: 'Demasiados escaneos' },
