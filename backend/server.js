@@ -27,8 +27,38 @@ app.use(compression());
 // CORS: acepta una lista de origins separados por coma (FRONTEND_URL puede ser
 // "https://gianqr.com,https://www.gianqr.com,https://gianqr.vercel.app").
 // Asi el cambio a dominio propio no rompe el deploy de Vercel actual.
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+const originsConfigurados = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',').map(s => s.trim()).filter(Boolean);
+
+// www y el dominio pelado son el MISMO sitio, pero para CORS son origins
+// distintos. Olvidarse uno de los dos es el error de configuracion mas facil
+// de cometer y el mas dificil de ver: el navegador no distingue un CORS
+// bloqueado de un corte de red, asi que la app muestra "sin conexion" y uno
+// sale a buscar el problema donde no esta.
+//
+// Paso de verdad: FRONTEND_URL tenia solo https://www.gianqr.com y
+// https://gianqr.com quedaba afuera. Por suerte el apex redirige a www antes
+// de que cargue la app, asi que no se noto; con el dominio al reves habria
+// sido una caida completa.
+//
+// Agregar el par no abre nada: es el mismo dominio, el mismo certificado y
+// el mismo dueño.
+function conParWww(origins) {
+  const out = new Set(origins);
+  for (const o of origins) {
+    try {
+      const u = new URL(o);
+      u.hostname = u.hostname.startsWith('www.') ? u.hostname.slice(4) : `www.${u.hostname}`;
+      out.add(u.origin);
+    } catch { /* no es una URL parseable: queda como vino */ }
+  }
+  return [...out];
+}
+const allowedOrigins = conParWww(originsConfigurados);
+
+// Al log del arranque, para que una lista incompleta se vea en el deploy en
+// vez de descubrirse con la gente en la puerta.
+console.log('[cors] origins permitidos:', allowedOrigins.join(', '));
 app.use(cors({
   origin: (origin, cb) => {
     // requests sin origin (curl, mobile apps) pasan

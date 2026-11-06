@@ -709,6 +709,33 @@ const dni = (n) => String(30000000 + n);
     }
   }
 
+  // ---------- CORS: www y el dominio pelado ----------
+  // FRONTEND_URL lista los origins permitidos. www y el apex son el mismo
+  // sitio pero origins distintos, y olvidarse uno rompe la app en silencio:
+  // el navegador no distingue CORS de falta de red, asi que se ve como "sin
+  // conexion". Paso en produccion. El server agrega el par automaticamente.
+  {
+    const pedirConOrigin = async (origin) => {
+      const r = await fetch(`${BASE}/health`, { headers: { Origin: origin } });
+      return r.headers.get('access-control-allow-origin');
+    };
+
+    // El de la config (default en la suite: http://localhost:5173)
+    check('cors: el origin configurado pasa',
+          await pedirConOrigin('http://localhost:5173') === 'http://localhost:5173',
+          'no devolvio el header');
+
+    // Su par con www, que nadie configuro a mano
+    check('cors: su par con www tambien pasa',
+          await pedirConOrigin('http://www.localhost:5173') === 'http://www.localhost:5173',
+          'el par www quedo afuera');
+
+    // Un dominio ajeno sigue sin pasar: el par no es una barra libre
+    check('cors: un origin ajeno sigue bloqueado',
+          !(await pedirConOrigin('https://sitio-ajeno.example')),
+          'dejo pasar un origin que no esta configurado');
+  }
+
   // ---------- Reportes ----------
   {
     const r = await req('GET', '/payments/report', { token: admin });
