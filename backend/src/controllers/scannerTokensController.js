@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
+const { fechaISO } = require('../utils/fechas');
 const { adminCanAccessEvent } = require('../utils/scope');
 
 // Helper: ¿el usuario es dueño del evento? Admin solo dentro de SU arbol
@@ -307,7 +308,8 @@ const publicScan = async (req, res) => {
       });
 
     if (ticket.status === 'usado')
-      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada', ticket });
+      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada',
+        ticket: { ...ticket, scanned_at: fechaISO(ticket.scanned_at) } });
 
     // Mismo chequeo que en /tickets/scan: una reserva sin completar no es una
     // entrada valida, aunque su status sea 'pagado' y ya tenga qr_code.
@@ -346,7 +348,7 @@ const publicScan = async (req, res) => {
       return res.status(409).json({
         valid: false,
         error: 'Esta entrada ya fue utilizada',
-        ticket: { ...ticket, status: 'usado', scanned_at: f?.scanned_at ?? null, puerta: f?.puerta ?? null },
+        ticket: { ...ticket, status: 'usado', scanned_at: fechaISO(f?.scanned_at), puerta: f?.puerta ?? null },
       });
     }
 

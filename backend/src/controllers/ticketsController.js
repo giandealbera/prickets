@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const { nuevoCodigoQR } = require('../utils/qrCode');
 const QRCode = require('qrcode');
 const db = require('../config/database');
+const { fechaISO } = require('../utils/fechas');
 const { checkSaleWindow } = require('../utils/saleWindow');
 const { eventoOperable } = require('../utils/eventStatus');
 const { userCanAccessEvent } = require('../utils/scope');
@@ -370,7 +371,9 @@ const scan = async (req, res) => {
     }
 
     if (ticket.status === 'usado')
-      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada', scanned_at: ticket.scanned_at, ticket });
+      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada',
+        scanned_at: fechaISO(ticket.scanned_at),
+        ticket: { ...ticket, scanned_at: fechaISO(ticket.scanned_at) } });
 
     // Una reserva todavia no vendida NO es una entrada. Nace con
     // status='pagado' (para que descuente cupo) y con su qr_code ya armado,
@@ -411,7 +414,7 @@ const scan = async (req, res) => {
       return res.status(409).json({
         valid: false,
         error: 'Esta entrada ya fue utilizada',
-        ticket: { ...ticket, status: 'usado', scanned_at: f?.scanned_at ?? null, puerta: f?.puerta ?? null },
+        ticket: { ...ticket, status: 'usado', scanned_at: fechaISO(f?.scanned_at), puerta: f?.puerta ?? null },
       });
     }
 

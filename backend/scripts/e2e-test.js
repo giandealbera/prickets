@@ -709,6 +709,45 @@ const dni = (n) => String(30000000 + n);
     }
   }
 
+  // ---------- La hora del escaneo no viaja corrida ----------
+  // Los dos motores devuelven distinto para la misma columna: Postgres manda
+  // un Date (sale con Z) y SQLite el string crudo "YYYY-MM-DD HH:MM:SS", en
+  // UTC pero sin marca de zona, que el navegador lee como hora LOCAL. En
+  // Argentina son 3 horas: una entrada recien escaneada figuraba usada 3
+  // horas en el FUTURO y el "hace cuanto" de la pantalla daba -180 minutos.
+  // No se veia en produccion (Postgres), solo en desarrollo, que es como
+  // decir que probar la puerta en local mentia.
+  {
+    const evH = await req('POST', '/events', { token: admin, body: {
+      name: 'Evento Hora', date: new Date().toISOString().slice(0, 10), start_time: '23:00',
+      sale_start_at: fechaLocal(-864e5), sale_end_at: fechaLocal(+864e5),
+      ticket_types: [{ name: 'General', price: 1000, total_quota: 5 }] } });
+    const ttH = (await req('GET', `/events/${evH.data?.id}/ticket-types`, { token: admin })).data?.[0];
+    const compraH = await req('POST', '/public/tickets/CASA', { body: {
+      event_id: evH.data?.id, ticket_type_id: ttH?.id, payment_method: 'efectivo',
+      attendees: [{ buyer_name: 'Hora', buyer_apellido: 'Exacta', buyer_dni: '41999888' }] } });
+    const qrH = compraH.data?.tickets?.[0]?.qr_code;
+    const puertaH = (await req('POST', '/scanner-tokens', { token: admin, body: {
+      event_id: evH.data?.id, all_types: true } })).data?.token;
+
+    const antes = Date.now();
+    await req('POST', `/scan/${puertaH}`, { body: { qr_code: qrH } });          // entra
+    const repe = await req('POST', `/scan/${puertaH}`, { body: { qr_code: qrH } }); // ya usada
+
+    const leida = Date.parse(repe.data?.ticket?.scanned_at);
+    const desvioMin = Math.abs(antes - leida) / 60000;
+    check('hora: el escaneo repetido dice cuando entro', Number.isFinite(leida),
+          `scanned_at=${repe.data?.ticket?.scanned_at}`);
+    check('hora: sin corrimiento de zona horaria', desvioMin < 5,
+          `${(desvioMin / 60).toFixed(2)} horas de desvio — scanned_at=${repe.data?.ticket?.scanned_at}`);
+
+    // El escaner del staff logueado tiene que decir lo mismo.
+    const repeAdmin = await req('POST', '/tickets/scan', { token: admin, body: { qr_code: qrH } });
+    const leidaAdmin = Date.parse(repeAdmin.data?.ticket?.scanned_at);
+    check('hora: el escaner del staff coincide', Math.abs(antes - leidaAdmin) / 60000 < 5,
+          `scanned_at=${repeAdmin.data?.ticket?.scanned_at}`);
+  }
+
   // ---------- Las dos pantallas de plata dicen lo mismo ----------
   // /admin/rendicion (GET /rendiciones) es donde se registran los pagos.
   // /admin/promotores (GET /users/promoter-sales) es el reporte. Los dos
