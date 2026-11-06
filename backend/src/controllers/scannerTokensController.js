@@ -297,6 +297,12 @@ const publicScan = async (req, res) => {
     const ticket = ticketResult.rows[0];
     if (!ticket) return res.status(404).json({ valid: false, error: 'QR no válido' });
 
+    // Una sola normalizacion, apenas leemos la entrada: asi TODAS las
+    // salidas de abajo devuelven la hora igual. Antes se hacia en cada
+    // return y se escapaban caminos — el rechazo por tipo de entrada
+    // seguia mandando el string crudo de SQLite, corrido 3 horas.
+    if (ticket.scanned_at) ticket.scanned_at = fechaISO(ticket.scanned_at);
+
     if (ticket.event_id !== scannerInfo.event_id)
       return res.status(400).json({ valid: false, error: 'Este ticket es de otro evento', ticket });
 
@@ -308,8 +314,7 @@ const publicScan = async (req, res) => {
       });
 
     if (ticket.status === 'usado')
-      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada',
-        ticket: { ...ticket, scanned_at: fechaISO(ticket.scanned_at) } });
+      return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada', ticket });
 
     // Mismo chequeo que en /tickets/scan: una reserva sin completar no es una
     // entrada valida, aunque su status sea 'pagado' y ya tenga qr_code.

@@ -349,6 +349,11 @@ const scan = async (req, res) => {
     const ticket = result.rows[0];
     if (!ticket) return res.status(404).json({ error: 'QR no válido', valid: false });
 
+    // Una sola normalizacion, apenas leemos la entrada: asi TODAS las salidas
+    // de abajo devuelven la hora igual. Antes se hacia en cada return y se
+    // escapaban caminos, que mandaban el string crudo de SQLite corrido 3h.
+    if (ticket.scanned_at) ticket.scanned_at = fechaISO(ticket.scanned_at);
+
     // Scope por rol: el owner solo puede escanear entradas de SUS eventos.
     // Sin esto, habilitar owner en la ruta le habria dado el poder de marcar
     // como usada cualquier entrada del sistema, de cualquier tenant.
@@ -372,8 +377,7 @@ const scan = async (req, res) => {
 
     if (ticket.status === 'usado')
       return res.status(409).json({ valid: false, error: 'Esta entrada ya fue utilizada',
-        scanned_at: fechaISO(ticket.scanned_at),
-        ticket: { ...ticket, scanned_at: fechaISO(ticket.scanned_at) } });
+        scanned_at: ticket.scanned_at, ticket });
 
     // Una reserva todavia no vendida NO es una entrada. Nace con
     // status='pagado' (para que descuente cupo) y con su qr_code ya armado,

@@ -746,6 +746,18 @@ const dni = (n) => String(30000000 + n);
     const leidaAdmin = Date.parse(repeAdmin.data?.ticket?.scanned_at);
     check('hora: el escaner del staff coincide', Math.abs(antes - leidaAdmin) / 60000 < 5,
           `scanned_at=${repeAdmin.data?.ticket?.scanned_at}`);
+
+    // Y el rechazo POR TIPO, que es otro camino: devolvia el ticket crudo.
+    // Se escapo la primera vez justamente porque se normalizaba en cada
+    // return en vez de una sola vez al leer la entrada.
+    const otroTipo = await req('POST', `/events/${evH.data?.id}/ticket-types`, { token: admin, body: {
+      name: 'Solo esta', price: 1000, total_quota: 5 } });
+    const puertaFiltrada = (await req('POST', '/scanner-tokens', { token: admin, body: {
+      event_id: evH.data?.id, ticket_type_ids: [otroTipo.data?.id] } })).data?.token;
+    const rechazo = await req('POST', `/scan/${puertaFiltrada}`, { body: { qr_code: qrH } });
+    check('hora: el rechazo por tipo tambien manda la hora bien',
+          Math.abs(antes - Date.parse(rechazo.data?.ticket?.scanned_at)) / 60000 < 5,
+          `HTTP ${rechazo.status} scanned_at=${rechazo.data?.ticket?.scanned_at}`);
   }
 
   // ---------- Las dos pantallas de plata dicen lo mismo ----------
