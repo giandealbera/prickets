@@ -495,9 +495,21 @@ const getPromoterSales = async (req, res) => {
               SUM(CASE WHEN t.status IN ('pagado','usado') THEN t.amount_paid ELSE 0 END) AS total_recaudado,
               (COUNT(CASE WHEN t.status IN ('pagado','usado') THEN t.id END) * p.commission) AS comision_promotor,
               (COUNT(CASE WHEN t.status IN ('pagado','usado') THEN t.id END) * p.leader_commission) AS comision_jefe,
+              -- debe_enviar NO descuenta la comision del jefe.
+              --
+              -- Este reporte la descontaba y /rendiciones no, asi que las dos
+              -- pantallas mostraban numeros distintos con el mismo nombre.
+              -- Medido: 10 entradas de $10.000 con comision propia de $800 y
+              -- del jefe de $400 daban $88.000 aca y $92.000 en rendiciones.
+              -- Peor todavia, registrar el pago por los $88.000 se aceptaba
+              -- sin aviso y quedaba un saldo colgado de $4.000.
+              --
+              -- Manda rendiciones, que es donde se registran los pagos de
+              -- verdad y donde se valida el tope: cada publica rinde su parte
+              -- directo al organizador, y al jefe se le paga aparte. La
+              -- comision del jefe se sigue informando en su propia columna.
               SUM(CASE WHEN t.status IN ('pagado','usado') THEN t.amount_paid ELSE 0 END)
-                - (COUNT(CASE WHEN t.status IN ('pagado','usado') THEN t.id END) * p.commission)
-                - (COUNT(CASE WHEN t.status IN ('pagado','usado') THEN t.id END) * p.leader_commission) AS debe_enviar
+                - (COUNT(CASE WHEN t.status IN ('pagado','usado') THEN t.id END) * p.commission) AS debe_enviar
        FROM promotors p
        JOIN users u ON u.id = p.user_id AND u.is_active = 1
        LEFT JOIN users lu ON lu.id = p.leader_id

@@ -709,6 +709,35 @@ const dni = (n) => String(30000000 + n);
     }
   }
 
+  // ---------- Las dos pantallas de plata dicen lo mismo ----------
+  // /admin/rendicion (GET /rendiciones) es donde se registran los pagos.
+  // /admin/promotores (GET /users/promoter-sales) es el reporte. Los dos
+  // muestran "debe_enviar" y calculaban distinto: el reporte restaba ademas
+  // la comision del jefe. Con 10 entradas de $10.000, comision propia $800 y
+  // del jefe $400, uno decia $92.000 y el otro $88.000, y cobrar los $88.000
+  // se aceptaba sin aviso dejando un saldo colgado.
+  {
+    const rend = await req('GET', '/rendiciones', { token: ownerTok });
+    const prom = await req('GET', '/users/promoter-sales', { token: ownerTok });
+    const filasProm = Array.isArray(prom.data) ? prom.data : (prom.data?.rows || []);
+
+    check('plata: los dos listados responden',
+          rend.status === 200 && prom.status === 200, `${rend.status} / ${prom.status}`);
+
+    let comparadas = 0, discrepa = [];
+    for (const r of (rend.data || [])) {
+      if (r.es_caja) continue;
+      const p = filasProm.find(x => x.promo_code === r.promo_code);
+      if (!p) continue;
+      comparadas++;
+      const a = Math.round(Number(r.debe_enviar) * 100);
+      const b = Math.round(Number(p.debe_enviar) * 100);
+      if (a !== b) discrepa.push(`${r.promo_code}: rendicion ${r.debe_enviar} vs reporte ${p.debe_enviar}`);
+    }
+    check('plata: se comparo al menos una publica', comparadas > 0, `comparadas=${comparadas}`);
+    check('plata: rendicion y reporte dicen lo mismo', discrepa.length === 0, discrepa.join(' | '));
+  }
+
   // ---------- CORS: www y el dominio pelado ----------
   // FRONTEND_URL lista los origins permitidos. www y el apex son el mismo
   // sitio pero origins distintos, y olvidarse uno rompe la app en silencio:
